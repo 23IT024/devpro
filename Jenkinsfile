@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Pulling code from devpro.git...'
-                git 'https://github.com/23IT024/devpro.git'
+                git branch: 'main', url: 'https://github.com/23IT024/devpro.git'
             }
         }
 
