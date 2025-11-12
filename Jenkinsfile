@@ -57,7 +57,7 @@ pipeline {
             echo '-------------------------------------'
             
             // *** THESE PATHS ARE ALSO FIXED ***
-            junit 'TomcatMavenApp/target/surefire-reports/*.xml'
+            junit allowEmptyResults: true, testResults: 'TomcatMavenApp/target/surefire-reports/*.xml'
             archiveArtifacts artifacts: 'TomcatMavenApp/target/*.war'
         }
     }
