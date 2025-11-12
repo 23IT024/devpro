@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     tools {
-        // This tells Jenkins to use the 'M3' Maven we just set up
         maven 'M3'
     }
 
@@ -11,6 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Pulling code from devpro.git...'
+                // This part is now correct
                 git branch: 'main', url: 'https://github.com/23IT024/devpro.git'
             }
         }
@@ -18,9 +18,12 @@ pipeline {
         // --- STAGE 2: BUILD THE .WAR FILE ---
         stage('Build & Test') {
             steps {
-                echo 'Running mvn clean package...'
-                // This command builds your app
-                sh 'mvn clean package'
+                // *** THIS IS THE FIX ***
+                // Use the 'dir' step to change into the sub-folder
+                dir('TomcatMavenApp') {
+                    echo "Running 'mvn clean package' inside TomcatMavenApp/"
+                    sh 'mvn clean package'
+                }
             }
         }
 
@@ -28,21 +31,17 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploying to Tomcat server...'
-
-                // This uses the plugin and credentials we just set up
+                
                 deploy adapters: [tomcat8(
-                    // This ID must match the credentials you created in Jenkins
                     credentialsId: 'tomcat-credentials', 
-
-                    // This is your Tomcat URL (on the new port)
                     url: 'http://localhost:8081', 
-
                     path: '/manager/text'
                 )],
-                // This is the file that Maven just built
-                war: 'target/*.war', 
-
-                // This will be the name of your app
+                
+                // *** THIS PATH IS ALSO FIXED ***
+                // The .war file is now inside the sub-folder's target
+                war: 'TomcatMavenApp/target/*.war', 
+                
                 contextPath: 'devpro' 
             }
         }
@@ -56,9 +55,10 @@ pipeline {
             echo 'To display your index.html, go to:'
             echo 'http://YOUR_SERVER_IP:8081/devpro/index.html'
             echo '-------------------------------------'
-
-            // This saves your .war file in Jenkins
-            archiveArtifacts artifacts: 'target/*.war'
+            
+            // *** THESE PATHS ARE ALSO FIXED ***
+            junit 'TomcatMavenApp/target/surefire-reports/*.xml'
+            archiveArtifacts artifacts: 'TomcatMavenApp/target/*.war'
         }
     }
 }
